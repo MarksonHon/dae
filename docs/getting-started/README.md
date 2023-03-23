@@ -114,6 +114,10 @@ git clone --depth=1 https://github.com/daeuniverse/dae
 docker compose up -d --build
 ```
 
+### Bash script (unstable)
+
+A bash script can help you install dae to your system, get it from <https://github.com/daeuniverse/dae-installer/>
+
 ### Others
 
 Other users can build dae by scratch. See [Build Guide](build-by-yourself.md) for more help.
