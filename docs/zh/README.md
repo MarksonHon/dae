@@ -130,7 +130,7 @@ emerge -a net-proxy/dae
 
 ### Alpine
 
-详见 [run on alpine](../en/tutorials/run-on-alpine.md)。
+详见 [在 Alpine Linux 上运行](./tutorials/run-on-alpine.md)。
 
 ### macOS
 

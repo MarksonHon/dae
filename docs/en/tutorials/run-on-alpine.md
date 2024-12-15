@@ -2,7 +2,7 @@
 
 **Note:** 
 1. Alpine Linux 3.18 or newer verison has full eBPF support out-of-box, older version of Alpine Linux need to build kernel by yourself.
-2. From version 3.20, Alpine Linux has officially disabled some features dae needed beacuse of Alpine Linux's cross CPU architectures compatibility, so only `linux-virt` can be used to run dae defaultly. For `linux-lts` or `linux-edge`, you should build the kernel by yourself.
+2. From version 3.20, Alpine Linux has officially disabled some features dae needed beacuse of Alpine Linux's cross CPU architectures compatibility, so only `linux-virt` (The kernel for virtual machines) can be used to run dae defaultly. For `linux-lts` or `linux-edge`, you should build the kernel by yourself.
 3. This tutorial is for Alpine Linux 3.20 and newer.
 
 ## Enable Community Repo
@@ -49,7 +49,7 @@ Add the following to the `mount_misc` section:
         fi
 ```
 
-Be careful that the format of the script `/etc/init.d/sysfs` must be correct, or `sysfs` service will be failed.
+Be careful that the format of the script `/etc/init.d/sysfs` must be correct, or `sysfs` service will be failed. Then you should **restart your system**.
 
 ## Install dae
 

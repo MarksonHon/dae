@@ -2,10 +2,10 @@
 
 **注意：** 
 1. Alpine Linux 3.18 或更新版本已完全支持开箱即用的 eBPF，旧版本的 Alpine Linux 需要自己构建内核。
-2. 从 3.20 版开始，由于 Alpine Linux 的跨 CPU 架构兼容性问题，官方禁用了 dae 所需的一些功能，因此默认情况下只能使用 `linux-virt` 运行 dae。对于 `linux-lts` 或 `linux-edge`，你应该自己构建内核。
+2. 从 3.20 版开始，由于 Alpine Linux 的跨 CPU 架构兼容性问题，官方禁用了 dae 所需的一些功能，因此默认情况下只能使用 `linux-virt` （虚拟机专用内核）运行 dae。对于 `linux-lts` 或 `linux-edge`，你应该自己构建内核。
 3. 本教程适用于 Alpine Linux 3.20 及更新版本。
 
-## 启用 Community Repo
+## 启用 Community 仓库
 
 运行 `setup-apkrepos` 命令，然后你会看到这样的菜单列表：
 
@@ -18,7 +18,7 @@
  (skip) Skip setting up apk repositories
 ```
 
-然后输入 ``c` 启用社区仓库。
+然后输入 `c` 启用 Community 仓库。
 
 ## 启用 CGgroups
 
@@ -49,7 +49,7 @@ vi /etc/init.d/sysfs
         fi
 ```
 
-请注意，脚本 `/etc/init.d/sysfs` 的格式必须正确，否则 `/etc/init.d/sysfs` 将被删除。
+请注意，脚本 `/etc/init.d/sysfs` 的格式必须正确，否则 `/etc/init.d/sysfs` 服务将运行失败。然后你应当**重启系统**。
 
 ## 安装 dae
 
