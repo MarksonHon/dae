@@ -1044,6 +1044,8 @@ P4 源级端点已落地，详见 3 节 P4 章节。`api.config_write` 关闭或
 
 ## 10. 2026-10-31 联调问题修复纪要
 
+> **当前状态注**：本节记录的是 2026-10-31 的历史排障过程，正文保持原样。其中内核直连计数（`direct_traffic_map`）已在 `cd123db` 中撤回，`runtime.traffic.planes.kernel_direct` 目前固定为 `"none"`。当前直连观测由 `control/kern/direct_stats.c` 提供：独立的只读 eBPF 观察点，只统计 `conn_state_map` 中已被 tproxy 标记为直连放行的有状态流，仅在 dae 监听的 LAN 接口上生效，受运行时开关 `SetDirectStatsEnabled` 控制（默认关闭）。它是**下界**：首包、无状态 TCP 放行、map 满时的 mark-0 路径、无状态 UDP 与分片尾部不计入。`kernel_block` 已从 flow coverage 中删除，因为被阻止的流量无法统计。
+
 本轮以**远端真实路由器**（OpenWrt 25.12 / x86_64 / kernel 6.12.112，dae 由本仓 `make` 编译后替换 `/usr/bin/dae`）实测为准，逐条定位并修复。所有结论都带实测数字，不是推断。
 
 约束：只替换 dae 服务本体，其余系统项不动；诊断日志一律落 `/tmp`。

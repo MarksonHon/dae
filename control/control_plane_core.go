@@ -116,7 +116,12 @@ type controlPlaneCore struct {
 	tcHookStage         *tcHookSet
 	tcHookStageDeferred bool
 	preparedTCHooks     *preparedTCHookHandoff
-	bpf                 atomic.Pointer[bpfObjects]
+	// directStats observes direct pass-through flows. directStatsLans records
+	// bound LAN links so the runtime switch can re-stage hooks without a reload.
+	directStatsMu   sync.Mutex
+	directStats     *ebpf.Collection
+	directStatsLans map[string]directStatsLan
+	bpf             atomic.Pointer[bpfObjects]
 	// outboundId2Name is populated during NewControlPlane before the control
 	// plane is published and is read-only afterwards, so concurrent readers
 	// (health callbacks, logging) need no lock.

@@ -448,6 +448,41 @@ func (s *tcHookSet) upsert(spec tcHookSpec) error {
 	return nil
 }
 
+func (s *tcHookSet) stageRemoveKey(key tcHookKey) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.txn == nil {
+		return fmt.Errorf("TC HookSet transaction is not active")
+	}
+	if s.txn.committed {
+		return fmt.Errorf("TC HookSet transaction is already committed")
+	}
+	delete(s.txn.desired, key)
+	return nil
+}
+
+func (s *tcHookSet) removeKey(key tcHookKey) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.closed {
+		return nil
+	}
+	if s.txn != nil {
+		return fmt.Errorf("TC HookSet transaction is active")
+	}
+	before := s.currentSpecsLocked()
+	if _, ok := before[key]; !ok {
+		return nil
+	}
+	desired := cloneTCHookSpecs(before)
+	delete(desired, key)
+	if err := s.applyDesiredLocked(desired); err != nil {
+		return stderrors.Join(err, s.applyDesiredLocked(before))
+	}
+	s.pruneEmptyGroupsLocked()
+	return nil
+}
+
 func (s *tcHookSet) removeInterface(scope tcHookScope, ifindex int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

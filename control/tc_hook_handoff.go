@@ -195,6 +195,23 @@ func (c *controlPlaneCore) stageTCHook(spec tcHookSpec) error {
 	return owned.upsert(spec)
 }
 
+func (c *controlPlaneCore) removeTCHookKey(key tcHookKey) error {
+	if c == nil {
+		return nil
+	}
+	c.tcHookMu.Lock()
+	stage := c.tcHookStage
+	owned := c.tcHooks
+	c.tcHookMu.Unlock()
+	if stage != nil {
+		return stage.stageRemoveKey(key)
+	}
+	if owned == nil {
+		return nil
+	}
+	return owned.removeKey(key)
+}
+
 func (c *controlPlaneCore) removeTCHooksForInterface(scope tcHookScope, ifindex int) error {
 	if c == nil {
 		return nil

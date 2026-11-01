@@ -800,7 +800,6 @@ type FlowCoverage struct {
 	UserspaceTCP string `json:"userspace_tcp"`
 	UserspaceUDP string `json:"userspace_udp"`
 	KernelDirect string `json:"kernel_direct"`
-	KernelBlock  string `json:"kernel_block"`
 	DNSIntercept string `json:"dns_intercept"`
 	KernelBypass string `json:"kernel_bypass"`
 }

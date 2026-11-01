@@ -12,8 +12,10 @@ import (
 )
 
 // TestDatapathKeepsNoTrafficAccounting pins the shape the traffic rework
-// depends on: pass-through accounting lives in userspace only, so the datapath
-// must not carry per-packet byte carriers or a flow index for it.
+// depends on: tproxy.c must not carry per-packet byte carriers or a flow index
+// for pass-through accounting. Observation lives in separate eBPF hooks
+// (direct_stats.c), which are allowed only if they stay read-only over the
+// flow state they observe.
 func TestDatapathKeepsNoTrafficAccounting(t *testing.T) {
 	raw, err := os.ReadFile("kern/tproxy.c")
 	if err != nil {
@@ -29,8 +31,30 @@ func TestDatapathKeepsNoTrafficAccounting(t *testing.T) {
 		"counted_as_download",
 	} {
 		if strings.Contains(source, banned) {
-			t.Fatalf("datapath still carries %q; pass-through accounting must stay in userspace", banned)
+			t.Fatalf("datapath still carries %q; pass-through accounting must stay out of tproxy.c", banned)
 		}
+	}
+}
+
+// TestDirectStatsObserverIsReadOnly pins the observer contract: it may read
+// conn_state_map but must never write or delete it, so counting cannot change
+// datapath verdicts or flow lifetimes.
+func TestDirectStatsObserverIsReadOnly(t *testing.T) {
+	raw, err := os.ReadFile("kern/direct_stats.c")
+	if err != nil {
+		t.Fatalf("read observer source: %v", err)
+	}
+	source := string(raw)
+	for _, forbidden := range []string{
+		"bpf_map_update_elem(&conn_state_map",
+		"bpf_map_delete_elem(&conn_state_map",
+	} {
+		if strings.Contains(source, forbidden) {
+			t.Fatalf("observer writes flow state via %q; it must stay read-only", forbidden)
+		}
+	}
+	if !strings.Contains(source, "bpf_map_lookup_elem(&conn_state_map") {
+		t.Fatal("observer must read conn_state_map to decide direct passthrough")
 	}
 }
 
