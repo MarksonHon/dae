@@ -176,6 +176,10 @@ func loadBpf() (*ebpf.CollectionSpec, error) {
 	return nil, errBpfObjectsUnavailable
 }
 
+func loadDirectstats() (*ebpf.CollectionSpec, error) {
+	return nil, errBpfObjectsUnavailable
+}
+
 func loadBpfObjects(_ any, _ *ebpf.CollectionOptions) error {
 	return errBpfObjectsUnavailable
 }

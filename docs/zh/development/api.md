@@ -1,7 +1,7 @@
 # 原生 API 参考
 
 listener 的配置、认证、TLS、Host/Origin 校验与自托管前端见
-[configuration/api.md](../configuration/api.md)。本页记录 dae 实现的端点与资源契约。
+[`configuration/api.md`](../configuration/api.md)。本页记录 dae 实现的端点与资源契约。
 
 ## 端点
 
@@ -52,7 +52,7 @@ listener 的配置、认证、TLS、Host/Origin 校验与自托管前端见
 `POST /api/v1/providers/{provider_id}/refresh` 已实现，但受配置写入闸门约束：
 `nodes.can_manage` 与 `providers.can_refresh` 随 `api.config_write` 与受管目录布局一起为真。
 三者都排队一个 reload，分别以 `202` + `node_create` / `node_delete` / `provider_refresh`
-操作返回；`DELETE` 对未知 id 保持幂等（`200 {"deleted": 0}`）。
+操作返回；`DELETE` 对未知 ID 保持幂等（`200 {"deleted": 0}`）。
 
 `/api/v1/runtime/settings`、`/api/v1/routing/trace`、`/api/v1/auth*` 仍未实现。配置仅支持
 源级编辑：`GET /api/v1/config`、`GET /api/v1/config/sources[/{source_id}]`、
@@ -61,7 +61,7 @@ listener 的配置、认证、TLS、Host/Origin 校验与自托管前端见
 与 `api.dae`）时才允许写入；否则返回 `403 permission_denied` 并附 `details.reason`，且不写盘。
 与契约的有意偏离：
 
-- `api.dae` 被隐藏：不出现在 `sources[]` 中，其 id 返回 `404 resource_not_found`，与未知 id 一致。
+- `api.dae` 被隐藏：不出现在 `sources[]` 中，其 ID 返回 `404 resource_not_found`，与未知 ID 一致。
   能力信息通过 `x-dae.hidden_sources` 体现。
 - `config.dae` 只读（`entry_source`）。替换时不得修改 `api` 段。
 - `GET` 读取磁盘文件，而非已接受的快照。其 `revision` 与

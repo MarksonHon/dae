@@ -2,7 +2,7 @@
 
 Listener configuration, authentication, TLS, Host/Origin checks and
 self-hosting the UI are covered in
-[configuration/api.md](../configuration/api.md). This page documents the
+[`configuration/api.md`](../configuration/api.md). This page documents the
 endpoints and the resource contract dae implements.
 
 ## Endpoints
@@ -56,7 +56,7 @@ for the same reason.
 configuration write switch: `nodes.can_manage` and `providers.can_refresh` are
 true only with `api.config_write` and the managed layout. All three queue a
 reload and answer `202` with a `node_create`, `node_delete` or
-`provider_refresh` operation; `DELETE` stays idempotent for an unknown id
+`provider_refresh` operation; `DELETE` stays idempotent for an unknown ID
 (`200 {"deleted": 0}`).
 
 `/api/v1/runtime/settings`, `/api/v1/routing/trace` and `/api/v1/auth*` remain
@@ -69,8 +69,8 @@ unimplemented. Configuration is editable at source level only:
 `403 permission_denied` with `details.reason`, and nothing is written. Deliberate
 deviations from the contract:
 
-- `api.dae` is hidden. It is omitted from `sources[]`, and its id answers
-  `404 resource_not_found`, the same as an unknown id. Capabilities report it in
+- `api.dae` is hidden. It is omitted from `sources[]`, and its ID answers
+  `404 resource_not_found`, the same as an unknown ID. Capabilities report it in
   `x-dae.hidden_sources`.
 - `config.dae` is read-only (`entry_source`). A replacement may not change the
   `api` section.
