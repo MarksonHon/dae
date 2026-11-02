@@ -107,6 +107,29 @@ func (p *nativeAPIProvider) RuntimeOutbounds(ctx context.Context) (nativeapi.Run
 	return result, nil
 }
 
+// SnapshotDirectStats reads the cumulative direct-traffic observation.
+func (p *nativeAPIProvider) SnapshotDirectStats(ctx context.Context) (nativeapi.RuntimeDirectStats, error) {
+	if err := ctx.Err(); err != nil {
+		return nativeapi.RuntimeDirectStats{}, err
+	}
+	plane, err := p.activeControlPlane()
+	if err != nil {
+		return nativeapi.RuntimeDirectStats{}, err
+	}
+	counters, err := plane.DirectStatsSnapshot()
+	if err != nil {
+		return nativeapi.RuntimeDirectStats{}, err
+	}
+	return nativeapi.RuntimeDirectStats{
+		ObservedAt:  time.Now().UTC().Format(time.RFC3339),
+		Enabled:     control.DirectStatsEnabled(),
+		UpBytes:     strconv.FormatUint(counters.UpBytes, 10),
+		UpPackets:   strconv.FormatUint(counters.UpPackets, 10),
+		DownBytes:   strconv.FormatUint(counters.DownBytes, 10),
+		DownPackets: strconv.FormatUint(counters.DownPackets, 10),
+	}, nil
+}
+
 // SnapshotMemory reads the current process and cgroup memory.
 func (p *nativeAPIProvider) SnapshotMemory(ctx context.Context) (nativeapi.RuntimeMemory, error) {
 	if err := ctx.Err(); err != nil {

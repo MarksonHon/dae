@@ -22,7 +22,7 @@ listener 的配置、认证、TLS、Host/Origin 校验与自托管前端见
 - `GET /api/v1/runtime/outbounds` — 按出站统计，reload 后继续累计
 - `GET /api/v1/runtime/memory` — 进程、cgroup v2 与 eBPF 内存
 - `GET /api/v1/runtime/memory/history?window_seconds=&max_points=`
-- `GET /api/v1/datapath` — eBPF 挂载点、routing generation 与 map 占用
+- `GET /api/v1/runtime/direct-stats` — dae 直连流量计数（需 `api.direct_stats: true`）
 - `GET /api/v1/nodes?group_id=&limit=&cursor=`
 - `GET /api/v1/nodes/{node_id}`
 - `POST /api/v1/operations/reload`
@@ -272,6 +272,15 @@ reload 保留。流量存储与 per-outbound 计数器一样是进程级：reloa
 
 `GET /api/v1/runtime/memory` 报告 `process.rss_bytes`、cgroup v2 读数以及 dae 的 eBPF
 对象占用的内核内存；`GET /api/v1/runtime/memory/history` 返回保留的历史序列。
+
+### 直连流量
+
+`GET /api/v1/runtime/direct-stats` 以十进制字符串返回 dae 直连流量的累计值：`up_bytes`、
+`up_packets`、`down_bytes`、`down_packets`。up 为 LAN 到 WAN，down 为 WAN 到 LAN。
+`enabled` 与 `api.direct_stats` 一致；关闭时计数保持为零。
+
+计数器是只读的 eBPF 观测点，只统计 tproxy 标记为直连穿透的有状态流，因此流的首包、
+无状态 TCP 穿透以及未经请求的 UDP 不计入。它不改变转发，也不修改 skb mark。
 
 cgroup 部分取决于系统。cgroup v2 只有在父级委派控制器之后
 （`echo +memory > cgroup.subtree_control`），子 cgroup 才会出现 `memory.current`、

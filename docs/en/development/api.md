@@ -17,7 +17,7 @@ Current implementation:
 - `GET /api/v1/runtime/outbounds` — per-outbound counters, retained across reloads
 - `GET /api/v1/runtime/memory` — process, cgroup v2 and eBPF memory
 - `GET /api/v1/runtime/memory/history?window_seconds=&max_points=`
-- `GET /api/v1/datapath` — eBPF attachments, routing generation and map occupancy
+- `GET /api/v1/runtime/direct-stats` — direct-traffic counters (requires `api.direct_stats: true`)
 - `GET /api/v1/groups`
 - `GET /api/v1/groups/{group_id}`
 - `GET /api/v1/groups/{group_id}/config` (read-only, `ETag` is the config revision)
@@ -352,6 +352,18 @@ no outbound owns.
 `GET /api/v1/runtime/memory` reports `process.rss_bytes`, the cgroup v2 reading
 and the kernel memory charged to dae's eBPF objects, and
 `GET /api/v1/runtime/memory/history` returns the retained series.
+
+### Direct traffic
+
+`GET /api/v1/runtime/direct-stats` returns cumulative `up_bytes`, `up_packets`,
+`down_bytes` and `down_packets` for traffic dae routes directly, as decimal
+strings. Up is LAN to WAN; down is WAN to LAN. `enabled` mirrors
+`api.direct_stats`. When it is `false` the counters stay at zero.
+
+The counter is a read-only eBPF observer. It counts only stateful flows that
+tproxy marked as direct pass-through, so the first packet of a flow, stateless
+TCP pass-through and unsolicited UDP are not counted. It does not change
+forwarding or the skb mark.
 
 The cgroup section depends on the system. A cgroup v2 hierarchy exposes
 `memory.current`, `memory.max` and `memory.events` to a child only after the

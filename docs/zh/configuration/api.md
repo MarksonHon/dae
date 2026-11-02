@@ -32,6 +32,7 @@ api {
 | `ui` | 空 | 存放已构建前端的绝对目录，在 `/ui/` 下无凭证访问；非 `/api` 路径会重定向到这里；留空表示不托管前端。 |
 | `config_write` | `false` | 是否允许通过 API 替换配置源。需要同时设置非空 `secret`，且配置目录符合下面的规范结构。 |
 | `disable_connection_bytes` | `false` | 不下发每条连接的累计上/下行字节（`upload_bytes` / `download_bytes`）。详见下面的流量统计口径。 |
+| `direct_stats` | `false` | 用只读 eBPF 计数器统计 dae 直连分流的流量（挂在 LAN 接口上），不改变转发与 mark。 |
 
 ## 通过 API 编辑配置
 

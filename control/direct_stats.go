@@ -41,6 +41,18 @@ type directStatsLan struct {
 	layer2 bool
 }
 
+// ConfigureDirectStats sets whether LAN hooks staged from now on include the
+// direct-traffic observer. The control plane calls it from api.direct_stats
+// before each build, so the switch follows the active configuration.
+func ConfigureDirectStats(enabled bool) {
+	directStatsEnabled.Store(enabled)
+}
+
+// DirectStatsEnabled reports the current observation switch.
+func DirectStatsEnabled() bool {
+	return directStatsEnabled.Load()
+}
+
 // SetDirectStatsEnabled toggles direct-traffic observation at runtime.
 func (c *ControlPlane) SetDirectStatsEnabled(enabled bool) error {
 	directStatsEnabled.Store(enabled)

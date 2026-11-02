@@ -91,6 +91,23 @@ api {
 	}
 }
 
+func TestApiDirectStatsDefaultsOffAndDecodes(t *testing.T) {
+	if conf := parseAPIConfig(t, ""); conf.Api.DirectStats {
+		t.Fatal("api.direct_stats should default to false")
+	}
+	conf := parseAPIConfig(t, `
+api {
+    enabled: true
+    listen: '127.0.0.1:19527'
+    secret: 'operator-token-123456'
+    direct_stats: true
+}
+`)
+	if !conf.Api.DirectStats {
+		t.Fatal("api.direct_stats not decoded")
+	}
+}
+
 func TestApiValidate(t *testing.T) {
 	tests := []struct {
 		name    string

@@ -46,6 +46,7 @@ func (s *Server) handleDiscovery(w http.ResponseWriter, r *http.Request, full bo
 			"runtime_outbounds": "/api/v1/runtime/outbounds",
 			"traffic_history":   "/api/v1/runtime/traffic/history",
 			"memory_history":    "/api/v1/runtime/memory/history",
+			"direct_stats":      "/api/v1/runtime/direct-stats",
 			"logs":              "/api/v1/logs",
 			"providers":         "/api/v1/providers",
 			"rules":             "/api/v1/rules",
@@ -180,6 +181,11 @@ func (s *Server) handleCapabilities(w http.ResponseWriter, r *http.Request) {
 	} else {
 		resources["runtime_memory"] = map[string]any{"available": false}
 		resources["memory_history"] = map[string]any{"available": false}
+	}
+	if s.directStats != nil {
+		resources["runtime_direct_stats"] = map[string]any{"available": true}
+	} else {
+		resources["runtime_direct_stats"] = map[string]any{"available": false}
 	}
 	if s.providers != nil {
 		caps := s.providers.ProviderCapabilities()

@@ -183,6 +183,51 @@ func TestDatapath(t *testing.T) {
 	}
 }
 
+type fakeDirectStatsProvider struct {
+	stats RuntimeDirectStats
+	err   error
+}
+
+func (p fakeDirectStatsProvider) SnapshotDirectStats(ctx context.Context) (RuntimeDirectStats, error) {
+	return p.stats, p.err
+}
+
+func TestRuntimeDirectStats(t *testing.T) {
+	server := newTestServer(t, Config{AllowAnonymousLoopback: true}, fakeRuntimeProvider{runtime: testRuntime()})
+	remote := "127.0.0.1:1234"
+
+	unsupported := doRequest(server, http.MethodGet, "/api/v1/runtime/direct-stats", remote, nil)
+	if unsupported.Code != http.StatusNotFound {
+		t.Fatalf("unsupported status = %d, want 404", unsupported.Code)
+	}
+
+	server.SetDirectStatsProvider(fakeDirectStatsProvider{stats: RuntimeDirectStats{
+		ObservedAt:  "2026-01-01T00:00:00Z",
+		Enabled:     true,
+		UpBytes:     "18446744073709551615",
+		UpPackets:   "3",
+		DownBytes:   "5",
+		DownPackets: "6",
+	}})
+
+	response := doRequest(server, http.MethodGet, "/api/v1/runtime/direct-stats", remote, nil)
+	if response.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", response.Code, response.Body.String())
+	}
+	body := decodeJSON(t, response)
+	if body["enabled"] != true || body["observed_at"] != "2026-01-01T00:00:00Z" {
+		t.Fatalf("body = %#v", body)
+	}
+	if body["up_bytes"] != "18446744073709551615" || body["down_packets"] != "6" {
+		t.Fatalf("counters must be decimal strings: %#v", body)
+	}
+
+	method := doRequest(server, http.MethodPost, "/api/v1/runtime/direct-stats", remote, nil)
+	if method.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("method status = %d, want 405", method.Code)
+	}
+}
+
 func TestRuntimeCapabilitiesAdvertiseNewResources(t *testing.T) {
 	server := newTestServer(t, Config{AllowAnonymousLoopback: true}, fakeRuntimeProvider{runtime: testRuntime()})
 	withRuntimeProviders(server)
