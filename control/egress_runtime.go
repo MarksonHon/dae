@@ -8,6 +8,7 @@ package control
 import (
 	stderrors "errors"
 	"reflect"
+	"sort"
 	"sync"
 
 	"github.com/daeuniverse/dae/component/outbound"
@@ -39,6 +40,10 @@ type egressRuntime struct {
 type egressBindingKey struct {
 	group  *outbound.DialerGroup
 	dialer *dialer.Dialer
+	// selection is the group's selection revision at the time the snapshot was
+	// taken. A pin or runtime selection change bumps it, so a cached snapshot
+	// carrying the old selection cannot be handed to a new flow.
+	selection uint64
 }
 
 type egressRuntimeActions struct {
@@ -96,6 +101,42 @@ func (r *egressRuntime) configureResources(
 	}
 }
 
+// dialers returns a deterministic snapshot of every dialer this generation
+// manages, including nodes that no group currently selects. The slice is a
+// copy, so callers may retain it across a reload.
+func (r *egressRuntime) dialers() []*dialer.Dialer {
+	if r == nil {
+		return nil
+	}
+	r.mu.Lock()
+	result := make([]*dialer.Dialer, 0, len(r.dialerRefs))
+	for d := range r.dialerRefs {
+		if d != nil {
+			result = append(result, d)
+		}
+	}
+	r.mu.Unlock()
+	// Stable keeps tied keys (for example two subscriptions carrying the same
+	// link) in one order, so a paginated walk cannot serve the same entry twice.
+	sort.SliceStable(result, func(i, j int) bool {
+		return dialerSortKey(result[i]) < dialerSortKey(result[j])
+	})
+	return result
+}
+
+// dialerSortKey gives the node listing a stable order that survives map
+// iteration and reloads of the same configuration.
+func dialerSortKey(d *dialer.Dialer) string {
+	property := d.Property()
+	if property == nil {
+		return ""
+	}
+	// Every discriminating field participates, so the order is total for
+	// distinguishable nodes and a merged node always keeps the same
+	// representative metadata.
+	return property.Name + "\x00" + property.Link + "\x00" + property.SubscriptionTag + "\x00" + property.Address + "\x00" + property.Protocol
+}
+
 type egressRuntimeLease struct {
 	runtime *egressRuntime
 	dialer  *dialer.Dialer
@@ -123,7 +164,7 @@ func (r *egressRuntime) acquireEgress(selected *dialer.Dialer, group *outbound.D
 		}
 		r.dialerRefs[selected] = refs + 1
 		if group != nil {
-			key := egressBindingKey{group: group, dialer: selected}
+			key := egressBindingKey{group: group, dialer: selected, selection: group.SelectionRevision()}
 			retainedGroup = r.snapshots[key]
 			if retainedGroup == nil {
 				retainedGroup = group.SnapshotForEstablishedFlow(selected)

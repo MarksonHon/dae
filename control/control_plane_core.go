@@ -16,6 +16,7 @@ import (
 	"github.com/cilium/ebpf"
 	ciliumLink "github.com/cilium/ebpf/link"
 	"github.com/daeuniverse/dae/component"
+	"github.com/daeuniverse/dae/component/outbound"
 	internal "github.com/daeuniverse/dae/pkg/ebpf_internal"
 	"github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
@@ -116,7 +117,16 @@ type controlPlaneCore struct {
 	tcHookStage         *tcHookSet
 	tcHookStageDeferred bool
 	preparedTCHooks     *preparedTCHookHandoff
-	bpf                 atomic.Pointer[bpfObjects]
+	// directStats is the opt-in direct-traffic observer object. It is loaded
+	// lazily on the first WAN/LAN bind while api.direct_stats is on.
+	directStatsMu sync.Mutex
+	directStats   *directStatsObserver
+	// nodeParseReport is how many links each subscription supplied and how
+	// many of them became dialers. It is written once during construction and
+	// read by the reload caller to decide whether a fetched payload may
+	// replace its cached copy.
+	nodeParseReport map[string]outbound.NodeParseCount
+	bpf             atomic.Pointer[bpfObjects]
 	// outboundId2Name is populated during NewControlPlane before the control
 	// plane is published and is read-only afterwards, so concurrent readers
 	// (health callbacks, logging) need no lock.
